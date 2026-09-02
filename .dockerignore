@@ -1,0 +1,11 @@
+node_modules
+Dockerfile
+.dockerignore
+.env
+.env.*
+!.env.example
+uploads
+prisma/generated
+tests
+coverage
+*.log
