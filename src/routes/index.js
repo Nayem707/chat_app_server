@@ -1,5 +1,9 @@
-import { Router } from 'express';
-import { healthRouter } from '../modules/health/health.routes.js';
+import { Router } from "express";
+import { healthRouter } from "../modules/health/health.routes.js";
+import { authRouter } from "../modules/auth/auth.routes.js";
+import { usersRouter } from "../modules/users/users.routes.js";
+import { conversationsRouter } from "../modules/conversations/conversations.routes.js";
+import { groupsRouter } from "../modules/groups/groups.routes.js";
 
 /**
  * Single mount point for all versioned API routes.
@@ -7,6 +11,8 @@ import { healthRouter } from '../modules/health/health.routes.js';
  */
 export const apiRouter = Router();
 
-apiRouter.use('/health', healthRouter);
-
-// Auth, users, conversations, messages, groups — added in later phases.
+apiRouter.use("/health", healthRouter);
+apiRouter.use("/auth", authRouter);
+apiRouter.use("/users", usersRouter);
+apiRouter.use("/conversations", conversationsRouter);
+apiRouter.use("/groups", groupsRouter);
