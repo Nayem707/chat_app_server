@@ -116,6 +116,10 @@ conversationsRouter.post(
       content: String(content).trim(),
     });
 
+    // Broadcast to all conversation members currently connected
+    const io = req.app.get("io");
+    io?.to(`conversation:${req.params.id}`).emit("new_message", { message });
+
     res.status(201).json({ success: true, data: message });
   }),
 );
