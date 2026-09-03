@@ -1,21 +1,27 @@
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
+import mongoose from "mongoose";
 import request from "supertest";
 
 import { createApp } from "../src/app.js";
 
-test("register -> login -> user search -> create conversation -> messages -> group -> logout flow", async (t) => {
-  const app = createApp();
+after(async () => {
+  await mongoose.disconnect();
+});
 
+test("register -> login -> user search -> create conversation -> messages -> group -> logout flow", async (t) => {
+  const app = await createApp();
+
+  const unique = Date.now();
   const userA = {
     name: "Alice Demo",
-    email: "alice.demo@example.com",
+    email: `alice.${unique}@example.com`,
     password: "Password123!",
   };
 
   const userB = {
     name: "Bob Demo",
-    email: "bob.demo@example.com",
+    email: `bob.${unique}@example.com`,
     password: "Password123!",
   };
 
@@ -109,11 +115,12 @@ test("register -> login -> user search -> create conversation -> messages -> gro
 });
 
 test("missing group route returns 404", async () => {
-  const app = createApp();
+  const app = await createApp();
 
+  const unique = Date.now() + 1;
   const user = {
     name: "Grace Demo",
-    email: "grace.demo@example.com",
+    email: `grace.${unique}@example.com`,
     password: "Password123!",
   };
 

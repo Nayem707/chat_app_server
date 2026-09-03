@@ -5,14 +5,20 @@ import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import morgan from "morgan";
 
+import mongoose from "mongoose";
 import { env, isDev } from "./config/env.js";
 import { logger } from "./config/logger.js";
+import { connectDatabase } from "./config/database.js";
 import { apiRouter } from "./routes/index.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/notFound.middleware.js";
 import { globalLimiter } from "./middlewares/rateLimit.middleware.js";
 
-export const createApp = () => {
+export const createApp = async () => {
+  if (mongoose.connection.readyState === 0) {
+    await connectDatabase();
+  }
+
   const app = express();
 
   app.disable("x-powered-by");

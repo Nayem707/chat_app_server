@@ -1,22 +1,25 @@
-import { PrismaClient } from "@prisma/client";
+import mongoose from "mongoose";
 import { env, isProd } from "./env.js";
 import { logger } from "./logger.js";
 
-/**
- * Single PrismaClient instance for the whole process.
- * Prisma manages its own connection pool; do not instantiate more than one.
- */
-export const prisma = new PrismaClient({
-  log: isProd ? ["warn", "error"] : ["warn", "error"],
-  datasources: { db: { url: env.DATABASE_URL } },
-});
-
 export async function connectDatabase() {
-  await prisma.$connect();
-  console.log("\uD83C\uDF89 Database connected");
+  mongoose.set("strictQuery", true);
+  await mongoose.connect(env.DATABASE_URL, {
+    autoIndex: true,
+    serverSelectionTimeoutMS: 5000,
+  });
+  logger.info("Database connected");
 }
 
 export async function disconnectDatabase() {
-  await prisma.$disconnect();
+  await mongoose.disconnect();
   logger.info("Database disconnected");
+}
+
+export const prisma = null;
+
+if (isProd) {
+  mongoose.set("debug", false);
+} else {
+  mongoose.set("debug", false);
 }

@@ -11,7 +11,7 @@ import { createSocketServer } from "./sockets/socket.server.js";
 const start = async () => {
   await connectDatabase();
 
-  const app = createApp();
+  const app = await createApp();
   const httpServer = http.createServer(app);
 
   // Socket.IO shares the same HTTP server so cookies/origin behave consistently.
@@ -19,8 +19,7 @@ const start = async () => {
   app.set("io", io);
 
   const server = httpServer.listen(env.PORT, () => {
-    console.log(`Server running in "${env.NODE_ENV}" mode`);
-    console.log(`Server running on http://localhost:${env.PORT}`);
+    logger.info({ env: env.NODE_ENV, port: env.PORT }, "Server started");
   });
 
   const shutdown = async (signal) => {

@@ -2,7 +2,9 @@ import { Server } from "socket.io";
 import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { verifyAccessToken } from "../utils/jwt.js";
-import { appStore } from "../modules/store.js";
+import { authService } from "../modules/auth/auth.service.js";
+import { userRepository } from "../modules/user/user.repository.js";
+import { conversationRepository } from "../modules/conversation/conversation.repository.js";
 
 export const createSocketServer = (httpServer) => {
   const io = new Server(httpServer, {
@@ -13,17 +15,16 @@ export const createSocketServer = (httpServer) => {
     transports: ["websocket", "polling"],
   });
 
-  // Verify JWT before allowing connection
   io.use(async (socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("auth_error"));
     try {
       const payload = verifyAccessToken(token);
-      if (appStore.isTokenRevoked(payload.jti))
+      if (authService.isTokenRevoked(payload.jti))
         return next(new Error("auth_error"));
-      const user = await appStore.findUserById(payload.sub);
+      const user = await userRepository.findById(payload.sub);
       if (!user) return next(new Error("auth_error"));
-      socket.userId = user.id;
+      socket.userId = user._id ? user._id.toString() : user.id;
       next();
     } catch {
       next(new Error("auth_error"));
@@ -34,12 +35,17 @@ export const createSocketServer = (httpServer) => {
     const { userId } = socket;
     logger.debug({ socketId: socket.id, userId }, "Socket connected");
 
-    // Broadcast presence to everyone
     socket.broadcast.emit("user_online", { userId });
 
-    socket.on("join_conversation", ({ conversationId }) => {
-      const conversation = appStore.getConversationById(conversationId);
-      const isMember = conversation?.members?.some((m) => m.userId === userId);
+    socket.on("join_conversation", async ({ conversationId }) => {
+      const conversation =
+        await conversationRepository.findById(conversationId);
+      const isMember = conversation?.members?.some((member) => {
+        const memberUserId = member.user?._id
+          ? member.user._id.toString()
+          : member.user?.toString?.();
+        return memberUserId === userId;
+      });
       if (isMember) socket.join(`conversation:${conversationId}`);
     });
 
