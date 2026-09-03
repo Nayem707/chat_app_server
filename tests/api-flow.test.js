@@ -107,3 +107,32 @@ test("register -> login -> user search -> create conversation -> messages -> gro
   assert.equal(logout.status, 200);
   assert.equal(logout.body.success, true);
 });
+
+test("missing group route returns 404", async () => {
+  const app = createApp();
+
+  const user = {
+    name: "Grace Demo",
+    email: "grace.demo@example.com",
+    password: "Password123!",
+  };
+
+  const register = await request(app).post("/api/auth/register").send(user);
+  assert.equal(register.status, 201);
+
+  const login = await request(app).post("/api/auth/login").send({
+    email: user.email,
+    password: user.password,
+  });
+
+  assert.equal(login.status, 200);
+  const cookie = login.headers["set-cookie"][0].split(";")[0];
+
+  const missingGroup = await request(app)
+    .get("/api/groups/conversation_missing_id")
+    .set("Cookie", cookie);
+
+  assert.equal(missingGroup.status, 404);
+  assert.equal(missingGroup.body.success, false);
+  assert.equal(missingGroup.body.message, "Group not found.");
+});
