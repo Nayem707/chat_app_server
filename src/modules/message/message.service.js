@@ -8,9 +8,9 @@ const normalizeMessage = (message) => {
     message.sender && typeof message.sender === "object"
       ? message.sender
       : null;
-  const senderId = sender?._id
-    ? sender._id.toString()
-    : message.sender?.toString?.() || message.senderId;
+  // After Mongoose schema transformation, sender has 'id' (string). Before transformation, it has '_id'.
+  const senderId =
+    sender?.id || sender?._id?.toString?.() || message.sender?.toString?.();
 
   return {
     id: message._id?.toString?.() ?? message.id,
@@ -38,9 +38,9 @@ const normalizeMessage = (message) => {
       ? message.reads
           .map(
             (read) =>
-              read.user?._id?.toString?.() ??
-              read.user?.toString?.() ??
-              read.userId,
+              read.user?.id ||
+              read.user?._id?.toString?.() ||
+              read.user?.toString?.(),
           )
           .filter(Boolean)
       : [],

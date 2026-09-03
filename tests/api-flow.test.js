@@ -114,6 +114,104 @@ test("register -> login -> user search -> create conversation -> messages -> gro
   assert.equal(logout.body.success, true);
 });
 
+test("message sender ID consistency (alignment bug fix)", async () => {
+  const app = await createApp();
+
+  const unique = Date.now() + 2;
+  const userA = {
+    name: "Alice Alignment Test",
+    email: `alice-align.${unique}@example.com`,
+    password: "Password123!",
+  };
+
+  const userB = {
+    name: "Bob Alignment Test",
+    email: `bob-align.${unique}@example.com`,
+    password: "Password123!",
+  };
+
+  const registerA = await request(app).post("/api/auth/register").send(userA);
+  assert.equal(registerA.status, 201);
+  const userAId = registerA.body.data.user.id;
+  assert.ok(typeof userAId === "string", "User ID should be a string");
+
+  const registerB = await request(app).post("/api/auth/register").send(userB);
+  assert.equal(registerB.status, 201);
+
+  const loginA = await request(app).post("/api/auth/login").send({
+    email: userA.email,
+    password: userA.password,
+  });
+
+  assert.equal(loginA.status, 200);
+  const cookie = loginA.headers["set-cookie"][0].split(";")[0];
+
+  const me = await request(app).get("/api/auth/me").set("Cookie", cookie);
+  assert.equal(me.status, 200);
+  assert.equal(me.body.data.id, userAId, "Current user ID should match");
+
+  const conversation = await request(app)
+    .post("/api/conversations")
+    .set("Cookie", cookie)
+    .send({ userId: registerB.body.data.user.id, type: "DIRECT" });
+
+  assert.equal(conversation.status, 201);
+  const conversationId = conversation.body.data.id;
+
+  // Send a message
+  const sentMessage = await request(app)
+    .post(`/api/conversations/${conversationId}/messages`)
+    .set("Cookie", cookie)
+    .send({ content: "Alignment test message" });
+
+  assert.equal(sentMessage.status, 201);
+  assert.equal(sentMessage.body.success, true);
+  const createdMessageSenderId = sentMessage.body.data.senderId;
+
+  // Verify: created message sender ID should match current user ID
+  assert.equal(
+    createdMessageSenderId,
+    userAId,
+    "Created message senderId should match current user ID",
+  );
+  assert.equal(
+    typeof createdMessageSenderId,
+    "string",
+    "Message senderId should be a string",
+  );
+
+  // Retrieve messages
+  const messages = await request(app)
+    .get(`/api/conversations/${conversationId}/messages?page=1&limit=10`)
+    .set("Cookie", cookie);
+
+  assert.equal(messages.status, 200);
+  assert.ok(messages.body.data.items.length >= 1);
+
+  // Verify: all retrieved messages have correct sender ID format
+  const messageFromList = messages.body.data.items.find(
+    (m) => m.id === sentMessage.body.data.id,
+  );
+  assert.ok(messageFromList, "Sent message should be in the list");
+  assert.equal(
+    messageFromList.senderId,
+    userAId,
+    "Retrieved message senderId should match current user ID",
+  );
+  assert.equal(
+    typeof messageFromList.senderId,
+    "string",
+    "Retrieved message senderId should be a string",
+  );
+
+  // Verify: consistency between created and retrieved messages
+  assert.equal(
+    messageFromList.senderId,
+    createdMessageSenderId,
+    "Sender ID should be consistent between created and retrieved messages",
+  );
+});
+
 test("missing group route returns 404", async () => {
   const app = await createApp();
 
