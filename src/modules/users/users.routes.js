@@ -13,7 +13,7 @@ usersRouter.get(
     const currentUser = req.user;
 
     const { q = "" } = req.query;
-    const users = appStore.getUsersForSearch(currentUser.id, q);
+    const users = await appStore.getUsersForSearch(currentUser.id, q);
     res.json({ success: true, data: users });
   }),
 );
@@ -31,7 +31,7 @@ usersRouter.patch(
     const currentUser = req.user;
 
     const { name, bio } = req.body || {};
-    const updated = appStore.updateUser(currentUser.id, {
+    const updated = await appStore.updateUser(currentUser.id, {
       name: name?.trim() || currentUser.name,
       bio: typeof bio === "string" ? bio : currentUser.bio,
     });
