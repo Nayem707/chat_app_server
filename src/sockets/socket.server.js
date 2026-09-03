@@ -14,14 +14,14 @@ export const createSocketServer = (httpServer) => {
   });
 
   // Verify JWT before allowing connection
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("auth_error"));
     try {
       const payload = verifyAccessToken(token);
       if (appStore.isTokenRevoked(payload.jti))
         return next(new Error("auth_error"));
-      const user = appStore.state.users.find((u) => u.id === payload.sub);
+      const user = await appStore.findUserById(payload.sub);
       if (!user) return next(new Error("auth_error"));
       socket.userId = user.id;
       next();

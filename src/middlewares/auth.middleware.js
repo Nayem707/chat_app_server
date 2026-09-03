@@ -23,7 +23,7 @@ export const authenticate = asyncHandler(async (req, _res, next) => {
     );
   }
 
-  const user = appStore.state.users.find((u) => u.id === payload.sub);
+  const user = await appStore.findUserById(payload.sub);
   if (!user) {
     throw new UnauthenticatedError(
       "Authentication required.",

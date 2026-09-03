@@ -10,8 +10,7 @@ conversationsRouter.use(authenticate);
 conversationsRouter.get(
   "/",
   asyncHandler(async (req, res) => {
-    const user = req.user;
-    const conversations = appStore.getConversationsForUser(user.id);
+    const conversations = await appStore.getConversationsForUser(req.user.id);
     res.json({ success: true, data: conversations });
   }),
 );
@@ -29,15 +28,14 @@ conversationsRouter.post(
     }
 
     if (type === "DIRECT") {
-      const conversation = appStore.createDirectConversation(
+      const conversation = await appStore.createDirectConversation(
         user.id,
         otherUserId,
       );
+      const conversations = await appStore.getConversationsForUser(user.id);
       res.status(201).json({
         success: true,
-        data: appStore
-          .getConversationsForUser(user.id)
-          .find((entry) => entry.id === conversation.id),
+        data: conversations.find((c) => c.id === conversation.id),
       });
       return;
     }
@@ -53,7 +51,7 @@ conversationsRouter.post(
 conversationsRouter.get(
   "/:id",
   asyncHandler(async (req, res) => {
-    const conversation = appStore.getConversationById(req.params.id);
+    const conversation = await appStore.getConversationById(req.params.id);
     if (!conversation) {
       const error = new Error("Conversation not found.");
       error.status = 404;
@@ -61,11 +59,12 @@ conversationsRouter.get(
     }
 
     const currentUser = req.user;
+    const conversations = await appStore.getConversationsForUser(
+      currentUser.id,
+    );
     res.json({
       success: true,
-      data: appStore
-        .getConversationsForUser(currentUser.id)
-        .find((entry) => entry.id === conversation.id),
+      data: conversations.find((c) => c.id === conversation.id),
     });
   }),
 );
@@ -75,18 +74,18 @@ conversationsRouter.get(
   asyncHandler(async (req, res) => {
     const user = req.user;
     const { page = 1, limit = 20 } = req.query;
-    const conversation = appStore.getConversationById(req.params.id);
+    const conversation = await appStore.getConversationById(req.params.id);
     if (!conversation) {
       const error = new Error("Conversation not found.");
       error.status = 404;
       throw error;
     }
 
-    const payload = appStore.getMessagesForConversation(
+    const payload = await appStore.getMessagesForConversation(
       req.params.id,
       Number(page),
       Number(limit),
-      user.id,
+      req.user.id,
     );
     res.json({ success: true, data: payload });
   }),
@@ -96,7 +95,7 @@ conversationsRouter.post(
   "/:id/messages",
   asyncHandler(async (req, res) => {
     const user = req.user;
-    const conversation = appStore.getConversationById(req.params.id);
+    const conversation = await appStore.getConversationById(req.params.id);
     if (!conversation) {
       const error = new Error("Conversation not found.");
       error.status = 404;
