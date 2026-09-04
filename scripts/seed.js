@@ -16,10 +16,10 @@ import { FriendshipModel } from "../src/modules/friends/friendship.model.js";
 // ── Dummy users ──────────────────────────────────────────────────────────────
 const USERS = [
   { displayName: "Alice Johnson", email: "alice@demo.com" },
-  { displayName: "Bob Smith",     email: "bob@demo.com" },
-  { displayName: "Carol White",   email: "carol@demo.com" },
-  { displayName: "David Lee",     email: "david@demo.com" },
-  { displayName: "Eva Martinez",  email: "eva@demo.com" },
+  { displayName: "Bob Smith", email: "bob@demo.com" },
+  { displayName: "Carol White", email: "carol@demo.com" },
+  { displayName: "David Lee", email: "david@demo.com" },
+  { displayName: "Eva Martinez", email: "eva@demo.com" },
 ];
 
 const DEFAULT_PASSWORD = "Demo1234!";
