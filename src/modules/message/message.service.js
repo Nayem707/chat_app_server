@@ -1,5 +1,7 @@
 import { messageRepository } from "./message.repository.js";
 import { conversationRepository } from "../conversation/conversation.repository.js";
+import { friendshipRepository } from "../friends/friendship.repository.js";
+import { ForbiddenError } from "../../errors/AppError.js";
 
 const normalizeMessage = (message) => {
   if (!message) return null;
@@ -69,6 +71,27 @@ export const messageService = {
   },
 
   async create({ conversationId, senderId, content }) {
+    // Reject if sender is trying to message in a DIRECT conv without friendship.
+    const conversation = await conversationRepository.findById(conversationId);
+    if (conversation?.type === "DIRECT") {
+      const otherMember = conversation.members?.find((m) => {
+        const mId = m.user?._id?.toString?.() ?? m.user?.toString?.();
+        return mId && mId !== senderId;
+      });
+      const otherId =
+        otherMember?.user?._id?.toString?.() ?? otherMember?.user?.toString?.();
+      if (otherId) {
+        const friends = await friendshipRepository.areFriends(
+          senderId,
+          otherId,
+        );
+        if (!friends)
+          throw new ForbiddenError(
+            "You can only send messages to accepted friends.",
+          );
+      }
+    }
+
     const message = await messageRepository.create({
       conversationId,
       senderId,

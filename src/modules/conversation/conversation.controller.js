@@ -1,6 +1,8 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { conversationService } from "./conversation.service.js";
 import { messageService } from "../message/message.service.js";
+import { friendshipService } from "../friends/friendship.service.js";
+import { ForbiddenError } from "../../errors/AppError.js";
 
 export const conversationController = {
   list: asyncHandler(async (req, res) => {
@@ -17,6 +19,15 @@ export const conversationController = {
     }
 
     if (type === "DIRECT") {
+      const friends = await friendshipService.areFriends(
+        req.user.id,
+        otherUserId,
+      );
+      if (!friends)
+        throw new ForbiddenError(
+          "You can only start a direct conversation with accepted friends.",
+        );
+
       const created = await conversationService.createDirect(
         req.user.id,
         otherUserId,

@@ -2,6 +2,8 @@ import { Router } from "express";
 import { authenticate } from "../../middlewares/auth.middleware.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { conversationService } from "../conversation/conversation.service.js";
+import { friendshipRepository } from "../friends/friendship.repository.js";
+import { ForbiddenError } from "../../errors/AppError.js";
 
 export const groupRoutes = Router();
 groupRoutes.use(authenticate);
@@ -15,6 +17,13 @@ groupRoutes.post(
       error.status = 400;
       throw error;
     }
+
+    // Only accepted friends can be added to a group.
+    const friendChecks = await Promise.all(
+      memberIds.map((id) => friendshipRepository.areFriends(req.user.id, id)),
+    );
+    if (friendChecks.some((isFriend) => !isFriend))
+      throw new ForbiddenError("You can only add accepted friends to a group.");
 
     const created = await conversationService.createGroup(req.user.id, {
       name,
