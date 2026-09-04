@@ -5,13 +5,8 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Prisma engines require openssl on alpine.
-RUN apk add --no-cache openssl
-
 COPY package.json package-lock.json* ./
-COPY prisma ./prisma
-RUN npm install --omit=dev --no-audit --no-fund \
-    && npx prisma generate
+RUN npm install --omit=dev --no-audit --no-fund
 
 # ---- runtime stage ---------------------------------------------------------
 FROM node:20-alpine AS runtime
@@ -19,11 +14,10 @@ WORKDIR /app
 ENV NODE_ENV=production \
     PORT=5000
 
-RUN apk add --no-cache openssl tini \
+RUN apk add --no-cache tini \
     && addgroup -S app && adduser -S app -G app
 
 COPY --from=deps --chown=app:app /app/node_modules ./node_modules
-COPY --from=deps --chown=app:app /app/prisma ./prisma
 COPY --chown=app:app src ./src
 COPY --chown=app:app package.json ./
 
