@@ -7,9 +7,11 @@ import { userRepository } from "../modules/user/user.repository.js";
 import { conversationRepository } from "../modules/conversation/conversation.repository.js";
 
 export const createSocketServer = (httpServer) => {
+  const allowedOrigins = env.CLIENT_URL.split(",").map((o) => o.trim());
+
   const io = new Server(httpServer, {
     cors: {
-      origin: env.CLIENT_URL,
+      origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
       credentials: true,
     },
     transports: ["websocket", "polling"],

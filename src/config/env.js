@@ -34,7 +34,7 @@ const schema = z.object({
   COOKIE_SECURE: boolFromString.default(false),
   COOKIE_SAMESITE: z.enum(["lax", "strict", "none"]).default("lax"),
 
-  CLIENT_URL: z.string().url().default("http://localhost:5173"),
+  CLIENT_URL: z.string().min(1).default("http://localhost:5173"),
 
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120),

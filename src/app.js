@@ -25,9 +25,11 @@ export const createApp = async () => {
   app.set("trust proxy", 1); // required for correct client IP behind reverse proxies
 
   app.use(helmet());
+  const allowedOrigins = env.CLIENT_URL.split(",").map((o) => o.trim());
+
   app.use(
     cors({
-      origin: env.CLIENT_URL,
+      origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
       credentials: true,
       methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     }),
