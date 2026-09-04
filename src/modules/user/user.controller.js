@@ -19,4 +19,28 @@ export const userController = {
     );
     res.json({ success: true, data: user });
   }),
+
+  uploadAvatar: asyncHandler(async (req, res) => {
+    if (!req.file) {
+      const err = new Error("No file uploaded.");
+      err.status = 400;
+      throw err;
+    }
+    const user = await userService.updateCurrentProfile(req.user.id, {
+      avatarUrl: `/uploads/${req.file.filename}`,
+    });
+    res.json({ success: true, data: user });
+  }),
+
+  uploadCover: asyncHandler(async (req, res) => {
+    if (!req.file) {
+      const err = new Error("No file uploaded.");
+      err.status = 400;
+      throw err;
+    }
+    const user = await userService.updateCurrentProfile(req.user.id, {
+      coverUrl: `/uploads/${req.file.filename}`,
+    });
+    res.json({ success: true, data: user });
+  }),
 };

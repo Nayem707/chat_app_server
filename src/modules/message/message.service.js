@@ -20,6 +20,7 @@ const normalizeMessage = (message) => {
       message.conversation?.toString?.() ?? message.conversationId,
     senderId,
     senderName: sender?.displayName || sender?.name || "Unknown user",
+    senderAvatar: sender?.avatarUrl || sender?.avatar || "",
     text: message.content,
     content: message.content,
     type: message.type,

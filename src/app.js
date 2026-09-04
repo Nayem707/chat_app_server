@@ -60,6 +60,8 @@ export const createApp = async () => {
 
   app.use("/api", apiRouter);
 
+  app.use("/uploads", express.static(env.STORAGE_LOCAL_DIR));
+
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);
 

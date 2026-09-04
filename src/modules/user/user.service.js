@@ -11,6 +11,7 @@ export const sanitizeUser = (user) => {
     username: user.username,
     bio: user.bio || "",
     avatar: user.avatarUrl || user.avatar || "",
+    coverUrl: user.coverUrl || "",
     color: user.color || "from-violet-500 to-indigo-500",
     status: user.status || (user.isOnline ? "online" : "offline"),
     createdAt: user.createdAt,
@@ -35,6 +36,12 @@ export const userService = {
     }
     if (typeof updates.bio === "string") {
       next.bio = updates.bio.trim();
+    }
+    if (typeof updates.avatarUrl === "string") {
+      next.avatarUrl = updates.avatarUrl;
+    }
+    if (typeof updates.coverUrl === "string") {
+      next.coverUrl = updates.coverUrl;
     }
     const user = await userRepository.updateById(userId, next);
     return sanitizeUser(user);

@@ -12,7 +12,8 @@ const buildMemberMeta = (member) => {
     email: user?.email || "",
     role: member.role,
     status: user?.isOnline ? "online" : "offline",
-    avatar: user?.displayName?.slice(0, 2).toUpperCase?.() || "U",
+    avatar: user?.avatarUrl || "",
+    coverUrl: user?.coverUrl || "",
     color: "from-violet-500 to-indigo-500",
   };
 };
@@ -37,7 +38,10 @@ const buildConversationPayload = (conversation, currentUserId) => {
     name: title,
     title,
     description: conversation.description || "",
-    avatar: conversation.avatarUrl || title.slice(0, 2).toUpperCase(),
+    avatar:
+      conversation.type === "DIRECT"
+        ? peer?.user?.avatarUrl || ""
+        : conversation.avatarUrl || "",
     color: "from-violet-500 to-indigo-500",
     members: activeMembers.map(
       (member) => member.user?._id?.toString?.() || member.userId,

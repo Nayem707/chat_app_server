@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     avatarUrl: String,
+    coverUrl: String,
     bio: String,
     isOnline: {
       type: Boolean,
