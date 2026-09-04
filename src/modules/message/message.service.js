@@ -25,6 +25,10 @@ const normalizeMessage = (message) => {
     content: message.content,
     type: message.type,
     status: message.status,
+    attachmentUrl: message.attachmentUrl || null,
+    attachmentName: message.attachmentName || null,
+    attachmentSize: message.attachmentSize || null,
+    attachmentMime: message.attachmentMime || null,
     createdAt: message.createdAt
       ? new Date(message.createdAt).toISOString()
       : new Date().toISOString(),
@@ -71,7 +75,15 @@ export const messageService = {
     };
   },
 
-  async create({ conversationId, senderId, content }) {
+  async create({
+    conversationId,
+    senderId,
+    content,
+    attachmentUrl,
+    attachmentName,
+    attachmentSize,
+    attachmentMime,
+  }) {
     // Reject if sender is trying to message in a DIRECT conv without friendship.
     const conversation = await conversationRepository.findById(conversationId);
     if (conversation?.type === "DIRECT") {
@@ -93,10 +105,21 @@ export const messageService = {
       }
     }
 
+    const type = attachmentUrl
+      ? attachmentMime?.startsWith("image/")
+        ? "IMAGE"
+        : "FILE"
+      : "TEXT";
+
     const message = await messageRepository.create({
       conversationId,
       senderId,
-      content: String(content).trim(),
+      content: content ? String(content).trim() : "",
+      type,
+      attachmentUrl,
+      attachmentName,
+      attachmentSize,
+      attachmentMime,
     });
 
     await conversationRepository.updateById(conversationId, {

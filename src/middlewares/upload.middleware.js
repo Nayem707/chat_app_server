@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
     cb(null, `${crypto.randomUUID()}${path.extname(file.originalname)}`),
 });
 
-const fileFilter = (_req, file, cb) => {
+const imageFilter = (_req, file, cb) => {
   if (file.mimetype.startsWith("image/")) cb(null, true);
   else
     cb(
@@ -23,7 +23,31 @@ const fileFilter = (_req, file, cb) => {
     );
 };
 
+const messageFileFilter = (_req, file, cb) => {
+  const ok =
+    file.mimetype.startsWith("image/") ||
+    [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "text/plain",
+      "application/zip",
+    ].includes(file.mimetype);
+  if (ok) cb(null, true);
+  else cb(Object.assign(new Error("Unsupported file type."), { status: 400 }));
+};
+
 export const uploadSingle = (field) =>
-  multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }).single(
-    field,
-  );
+  multer({
+    storage,
+    fileFilter: imageFilter,
+    limits: { fileSize: 5 * 1024 * 1024 },
+  }).single(field);
+
+export const uploadMessageFile = multer({
+  storage,
+  fileFilter: messageFileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
+}).single("file");

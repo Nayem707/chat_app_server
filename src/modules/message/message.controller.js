@@ -27,6 +27,29 @@ export const messageController = {
     res.status(201).json({ success: true, data: payload });
   }),
 
+  createWithAttachment: asyncHandler(async (req, res) => {
+    if (!req.file) {
+      const err = new Error("No file uploaded.");
+      err.status = 400;
+      throw err;
+    }
+    const content = req.body?.content || "";
+    const payload = await messageService.create({
+      conversationId: req.params.id,
+      senderId: req.user.id,
+      content,
+      attachmentUrl: `/uploads/${req.file.filename}`,
+      attachmentName: req.file.originalname,
+      attachmentSize: req.file.size,
+      attachmentMime: req.file.mimetype,
+    });
+    const io = req.app.get("io");
+    io?.to(`conversation:${req.params.id}`).emit("new_message", {
+      message: payload,
+    });
+    res.status(201).json({ success: true, data: payload });
+  }),
+
   update: asyncHandler(async (req, res) => {
     const { content } = req.body || {};
     const payload = await messageService.update(

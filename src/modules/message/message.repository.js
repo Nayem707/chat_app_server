@@ -54,14 +54,24 @@ export const messageRepository = {
     content,
     type = "TEXT",
     status = "SENT",
+    attachmentUrl,
+    attachmentName,
+    attachmentSize,
+    attachmentMime,
   }) {
     const message = await MessageModel.create({
       conversation: conversationId,
       sender: senderId,
-      content,
+      content: content || "",
       type,
       status,
       reads: [{ user: senderId, readAt: new Date() }],
+      ...(attachmentUrl && {
+        attachmentUrl,
+        attachmentName,
+        attachmentSize,
+        attachmentMime,
+      }),
     });
 
     const withSender = await message.populate("sender");
