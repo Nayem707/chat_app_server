@@ -12,10 +12,12 @@ RUN npm install --omit=dev --no-audit --no-fund
 FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
-    PORT=5000
+    PORT=5000 \
+    STORAGE_LOCAL_DIR=/app/uploads
 
 RUN apk add --no-cache tini \
-    && addgroup -S app && adduser -S app -G app
+    && addgroup -S app && adduser -S app -G app \
+    && mkdir -p /app/uploads && chown app:app /app/uploads
 
 COPY --from=deps --chown=app:app /app/node_modules ./node_modules
 COPY --chown=app:app src ./src
