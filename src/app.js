@@ -39,9 +39,7 @@ export const createApp = async () => {
   app.use(cookieParser(env.COOKIE_SECRET));
 
   if (isDev) {
-    app.use(
-      morgan(":method :url :status :response-time ms - :res[content-length]"),
-    );
+    app.use(morgan(":method :status :url :response-time ms"));
   } else {
     app.use(
       pinoHttp({
@@ -54,6 +52,18 @@ export const createApp = async () => {
           if (res.statusCode >= 400) return "warn";
           return "info";
         },
+        // Custom serializers to log only essential request/response data
+        serializers: {
+          req: (req) => ({
+            method: req.method,
+            url: req.url,
+          }),
+          res: (res) => ({
+            statusCode: res.statusCode,
+          }),
+        },
+        // Custom message format for clean, compact output
+        msgCaseSensitivity: "lower",
       }),
     );
   }
