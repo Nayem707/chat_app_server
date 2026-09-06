@@ -6,9 +6,9 @@
   "description": "Real-time chat backend (Express + Socket.IO + MongoDB + Mongoose)",
   "main": "src/server.js",
   "scripts": {
-    "dev": "node --watch src/server.js",
-    "start": "node src/server.js",
-    "build": "echo \"No build step (plain ESM). Add a bundler if targeting a runtime without Node 20.\"",
+    "dev": "node init && node --watch src/server.js",
+    "start": "node init && node src/server.js",
+    "build": "node init && echo \"No build step (plain ESM). Add a bundler if targeting a runtime without Node 20.\"",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
     "test": "NODE_ENV=test node --test tests/**/*.test.js"
